@@ -17,13 +17,12 @@ module.exports = function(jsonApi) {
     const output = {}
     operation.parameters = operation.parameters || [] // On 2 lines for linter ...
     operation.parameters.filter(p => p['x-refersTo']).forEach(p => {
-      input[p['x-refersTo']] = input[p['x-refersTo']] || []
-      input[p['x-refersTo']].push({
+      input[p['x-refersTo']] = {
         name: p.name,
         description: p.description,
         in: p.in,
         required: p.required
-      })
+      }
     })
     let canUse = true
     let inputCollection = false
@@ -43,13 +42,12 @@ module.exports = function(jsonApi) {
         }
         Object.keys(properties).filter(p => properties[p]['x-refersTo']).forEach(p => {
           const prop = properties[p]
-          input[prop['x-refersTo']] = input[prop['x-refersTo']] || []
-          input[prop['x-refersTo']].push({
+          input[prop['x-refersTo']] = {
             name: p, // path in object, for the moment we only handle 1 level
             description: prop.description,
             in: 'body',
             required: operation.requestBody.required && prop.required
-          })
+          }
         })
       } else if (operation.requestBody.required) {
         // The body is required but we don't know how to fill it
@@ -74,12 +72,11 @@ module.exports = function(jsonApi) {
         }
         Object.keys(properties).filter(p => properties[p]['x-refersTo']).forEach(p => {
           const prop = properties[p]
-          output[prop['x-refersTo']] = output[prop['x-refersTo']] || []
-          output[prop['x-refersTo']].push({
+          output[prop['x-refersTo']] = {
             name: p, // path in object, for the moment we only handle 1 level
             description: prop.description,
             required: prop.required
-          })
+          }
         })
       }
     }
@@ -115,7 +112,7 @@ module.exports = function(jsonApi) {
       // Input transform logic : we transform a map of concepts and value to a JSON object
       // that have the required format according to the body schema
       const concepts = Object.assign({}, ...Object.keys(this.actions[actionId].input).map(conceptId => ({
-        [conceptId]: this.actions[actionId].input[conceptId].shift()
+        [conceptId]: this.actions[actionId].input[conceptId]
       })))
       const transformInput = (item) => {
         return Object.assign({}, ...Object.keys(item).filter(k => concepts[k] && concepts[k].in === 'body').map(k => ({
@@ -124,7 +121,7 @@ module.exports = function(jsonApi) {
       }
       // Output transform logic : from a json object to a map of concepts with values
       const fields = Object.assign({}, ...Object.keys(this.actions[actionId].output).map(conceptId => ({
-        [this.actions[actionId].output[conceptId].shift().name]: conceptId
+        [this.actions[actionId].output[conceptId].name]: conceptId
       })))
       const transformOutput = (item) => {
         return Object.assign({}, ...Object.keys(item).filter(k => fields[k]).map(k => ({
