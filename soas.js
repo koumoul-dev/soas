@@ -55,7 +55,7 @@ module.exports = function(jsonApi) {
       }
     }
     let outputCollection = false
-    let outputBodyTypes
+    let outputBodyTypes, outputSchema
     // We will handle other codes later
     if (operation.responses[200]) {
       const content = operation.responses[200].content
@@ -63,6 +63,7 @@ module.exports = function(jsonApi) {
       if (content && content['application/json'] && content['application/json'].schema) {
         // We will include a test on content['application/json'].schema['x-collectionOn'] later.
         // For now we only handle collections in arrays
+        outputSchema = content['application/json'].schema
         let properties
         if (content['application/json'].schema.type === 'array') {
           outputCollection = true
@@ -92,6 +93,7 @@ module.exports = function(jsonApi) {
       output,
       outputCollection,
       outputBodyTypes,
+      outputSchema,
       summary: operation.summary,
       type: operation['x-operationType'],
       canUse

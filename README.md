@@ -61,6 +61,7 @@ List all actions. An action is an API endpoint semantized with [annotations desc
  * **inputCollection** : boolean indicating if the action takes a collection as input
  * **inputBodyTypes** : the possible mime-types for the request body, if there is one
  * **output** : an map of concepts => object fields
+ * **outputSchema**: The JSON schema of output
  * **outputCollection** : boolean indicating if the action outputs a collection
  * **outputBodyTypes** : the possible mime-types for the response body, if there is one
  * **summary** : the summary of the operation this action refers to
