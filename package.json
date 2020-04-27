@@ -31,7 +31,7 @@
     "nyc": "^11.3.0"
   },
   "dependencies": {
-    "axios": "^0.17.1",
+    "axios": "^0.19.2",
     "mime-type-stream": "^0.1.3"
   }
 }
