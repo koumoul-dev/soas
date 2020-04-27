@@ -2,7 +2,7 @@ const axios = require('axios')
 const Transform = require('stream').Transform
 const mimeTypeStream = require('mime-type-stream')
 
-module.exports = function(jsonApi) {
+module.exports = function (jsonApi) {
   this.api = jsonApi
 
   this.endPoints = [].concat(...Object.keys(this.api.paths).map(path => Object.keys(this.api.paths[path]).map(method => ({
