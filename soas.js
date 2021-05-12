@@ -11,7 +11,7 @@ module.exports = function (jsonApi) {
     operation: this.api.paths[path][method]
   }))))
 
-  let actions = this.endPoints.filter(endPoint => endPoint.operation['x-operationType']).map(endPoint => {
+  const actions = this.endPoints.filter(endPoint => endPoint.operation['x-operationType']).map(endPoint => {
     const operation = endPoint.operation
     const input = {}
     const output = {}
@@ -28,18 +28,26 @@ module.exports = function (jsonApi) {
     let inputCollection = false
     let inputBodyTypes
     if (operation.requestBody) {
+      let properties
       const content = operation.requestBody.content
       inputBodyTypes = Object.keys(content).sort().reverse() // csv, ndjson, json priority order
-      if (content && content['application/json'] && content['application/json'].schema) {
+      if (content && content['application/x-ndjson'] && content['application/x-ndjson'].schema) {
+        inputCollection = true
+        properties = content['application/x-ndjson'].schema.properties
+      } else if (content && content['application/json'] && content['application/json'].schema) {
         // We will include a test on content['application/json'].schema['x-collectionOn'] later.
         // For now we only handle collections in arrays
-        let properties
         if (content['application/json'].schema.type === 'array') {
           inputCollection = true
           properties = content['application/json'].schema.items.properties
         } else {
           properties = content['application/json'].schema.properties
         }
+      } else if (operation.requestBody.required) {
+        // The body is required but we don't know how to fill it
+        canUse = false
+      }
+      if (properties) {
         Object.keys(properties).filter(p => properties[p]['x-refersTo']).forEach(p => {
           const prop = properties[p]
           input[prop['x-refersTo']] = {
@@ -49,28 +57,31 @@ module.exports = function (jsonApi) {
             required: operation.requestBody.required && prop.required
           }
         })
-      } else if (operation.requestBody.required) {
-        // The body is required but we don't know how to fill it
-        canUse = false
       }
     }
     let outputCollection = false
     let outputBodyTypes, outputSchema
     // We will handle other codes later
     if (operation.responses[200]) {
+      let properties
       const content = operation.responses[200].content
       outputBodyTypes = Object.keys(content).sort().reverse() // csv, ndjson, json priority order
-      if (content && content['application/json'] && content['application/json'].schema) {
+      if (content && content['application/x-ndjson'] && content['application/x-ndjson'].schema) {
+        outputSchema = content['application/x-ndjson'].schema
+        outputCollection = true
+        properties = content['application/x-ndjson'].schema.properties
+      } else if (content && content['application/json'] && content['application/json'].schema) {
         // We will include a test on content['application/json'].schema['x-collectionOn'] later.
         // For now we only handle collections in arrays
         outputSchema = content['application/json'].schema
-        let properties
         if (content['application/json'].schema.type === 'array') {
           outputCollection = true
           properties = content['application/json'].schema.items.properties
         } else {
           properties = content['application/json'].schema.properties
         }
+      }
+      if (properties) {
         Object.keys(properties).filter(p => properties[p]['x-refersTo']).forEach(p => {
           const prop = properties[p]
           output[prop['x-refersTo']] = {
