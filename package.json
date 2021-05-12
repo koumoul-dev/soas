@@ -1,6 +1,6 @@
 {
   "name": "soas",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Semantic Open API Specification library",
   "main": "soas.js",
   "scripts": {
